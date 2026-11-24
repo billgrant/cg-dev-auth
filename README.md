@@ -34,6 +34,10 @@ cg-dev-auth install                        # configures every tool, starts backg
 cg-dev-auth status                         # checks config, token lifetimes, live registry access
 ```
 
+See [TESTING.md](TESTING.md) for recipes that check each tool really pulls
+from Chainguard (using `chainctl libraries verify`), and for comparing
+upstream with Chainguard.
+
 To use this on another machine with another org, only the `--org` changes.
 The Libraries URLs are the same for every org (your login picks the org);
 only Docker image paths (`cgr.dev/ORG/...`) and named repositories use it.

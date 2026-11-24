@@ -45,11 +45,13 @@ func (*NPM) applyNpmrc(e *Env, token string, create bool) (bool, error) {
 	if !managed && !create {
 		return false, nil
 	}
-	// Decide always-auth at install time; a refresh (possibly from launchd,
-	// with a minimal PATH and no yarn) keeps what install chose.
-	alwaysAuth := cur.AlwaysAuth
-	if create {
-		alwaysAuth = e.yarnClassic()
+	// Yarn Classic needs always-auth; npm warns about it. Install decides from
+	// whether Yarn 1.x is on PATH. Refresh only ever adds it (when Yarn 1.x
+	// shows up later) and never drops it, because launchd's PATH may not see
+	// a yarn that the user's shell does.
+	alwaysAuth := e.yarnClassic()
+	if !create {
+		alwaysAuth = alwaysAuth || cur.AlwaysAuth
 	}
 	out, err := npmrc.Apply(string(data), npmrc.Settings{Registry: e.Config.JavaScriptRegistry(), Token: token, AlwaysAuth: alwaysAuth})
 	if err != nil {
@@ -122,6 +124,9 @@ func (*NPM) Status(ctx context.Context, e *Env, online bool) []Check {
 		token = s.Token
 		checks = append(checks, Check{OK, ".npmrc", "registry " + reg})
 		checks = append(checks, tokenCheck(e, "", s.Token))
+		if !s.AlwaysAuth && e.yarnClassic() {
+			checks = append(checks, Check{Warn, "", "Yarn 1.x is installed but .npmrc lacks always-auth, so yarn will get 404s (run: cg-dev-auth install)"})
+		}
 		for _, k := range npmrc.Conflicts(string(data), reg) {
 			checks = append(checks, Check{Warn, "", fmt.Sprintf("%s also sets %q outside the managed block (the block wins)", path, k)})
 		}

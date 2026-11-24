@@ -59,6 +59,7 @@ func newTestEnv(t *testing.T, f *fakeRunner) (*Env, *bytes.Buffer) {
 		Home: home, ConfigDir: dir, Config: cfg, Store: store,
 		Chainctl: chainctl.Client{Runner: f}, Out: out, Now: time.Now,
 		YarnClassic: func() bool { return false },
+		OS:          "linux",
 	}, out
 }
 
@@ -220,5 +221,31 @@ func TestTokenExpiryTwoSegmentFormat(t *testing.T) {
 	tok := "opaque-prefix!." + enc([]byte(fmt.Sprintf(`{"exp":%d}`, exp.Unix())))
 	if got := chainctl.TokenExpiry(tok); !got.Equal(exp) {
 		t.Fatalf("got %v want %v", got, exp)
+	}
+}
+
+func TestRefreshAddsAlwaysAuthWhenYarnClassicAppears(t *testing.T) {
+	f := &fakeRunner{token: jwt(time.Now().Add(time.Hour))}
+	e, out := newTestEnv(t, f)
+	ctx := context.Background()
+	if err := Install(ctx, e, InstallOptions{NoAgent: true}); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(e.Home, ".npmrc")
+	if strings.Contains(read(t, path), "always-auth") {
+		t.Fatal("always-auth written without Yarn 1.x")
+	}
+	// The user installs Yarn 1.x afterwards: status warns, refresh fixes it.
+	e.YarnClassic = func() bool { return true }
+	out.Reset()
+	_ = Status(ctx, e, false)
+	if !strings.Contains(out.String(), "lacks always-auth") {
+		t.Fatalf("status did not warn:\n%s", out)
+	}
+	if err := Refresh(ctx, e); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(read(t, path), ":always-auth=true") {
+		t.Fatal("refresh did not add always-auth")
 	}
 }

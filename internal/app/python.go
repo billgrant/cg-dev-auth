@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/billgrant/cg-dev-auth/internal/fsutil"
@@ -41,7 +40,7 @@ func (*Python) UsesToken() bool { return false }
 // ~/Library/Application Support/pip/pip.conf when that directory exists,
 // otherwise $XDG_CONFIG_HOME/pip/pip.conf (~/.config/pip/pip.conf).
 func pipConfPath(e *Env) string {
-	if runtime.GOOS == "darwin" {
+	if e.goos() == "darwin" {
 		dir := filepath.Join(e.Home, "Library", "Application Support", "pip")
 		if fi, err := os.Stat(dir); err == nil && fi.IsDir() {
 			return filepath.Join(dir, "pip.conf")

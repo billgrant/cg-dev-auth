@@ -7,7 +7,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -16,9 +15,6 @@ import (
 	"github.com/billgrant/cg-dev-auth/internal/fsutil"
 	"github.com/billgrant/cg-dev-auth/internal/launchd"
 )
-
-// GOOS is runtime.GOOS; tests override it to exercise the macOS paths.
-var GOOS = runtime.GOOS
 
 const (
 	maxLogBytes    = 1 << 20
@@ -71,7 +67,7 @@ func agentPath(e *Env) string {
 // agent` every refresh_interval. On other systems it prints how to schedule
 // refresh instead.
 func InstallAgent(ctx context.Context, e *Env) error {
-	if GOOS != "darwin" {
+	if e.goos() != "darwin" {
 		e.printf("· background refresh uses launchd and is macOS-only for now; schedule `cg-dev-auth refresh` (e.g. cron */5) to keep npm/yarn tokens fresh\n")
 		return nil
 	}
@@ -111,7 +107,7 @@ func InstallAgent(ctx context.Context, e *Env) error {
 
 // UninstallAgent unloads and deletes the LaunchAgent.
 func UninstallAgent(ctx context.Context, e *Env) error {
-	if GOOS != "darwin" {
+	if e.goos() != "darwin" {
 		return nil
 	}
 	path := launchd.PlistPath(e.Home)
@@ -128,11 +124,11 @@ func UninstallAgent(ctx context.Context, e *Env) error {
 
 // AgentStatus reports whether the LaunchAgent is installed and loaded.
 func AgentStatus(ctx context.Context, e *Env) []Check {
-	if GOOS != "darwin" {
+	if e.goos() != "darwin" {
 		return []Check{{Info, "", "background refresh is macOS-only for now (schedule `cg-dev-auth refresh` yourself)"}}
 	}
 	if _, err := os.Stat(launchd.PlistPath(e.Home)); err != nil {
-		return []Check{{Fail, "launchd", "LaunchAgent not installed (run: cg-dev-auth install)"}}
+		return []Check{{Warn, "launchd", "LaunchAgent not installed: npm/yarn tokens will expire (run: cg-dev-auth install)"}}
 	}
 	if _, err := e.exec(ctx, Cmd{Name: "launchctl", Args: []string{"print", launchdDomain() + "/" + launchd.Label}}); err != nil {
 		return []Check{{Fail, "launchd", "LaunchAgent installed but not loaded (run: cg-dev-auth install)"}}
@@ -189,7 +185,7 @@ func trimLog(path string) {
 }
 
 func (e *Env) notify(message string) {
-	if GOOS != "darwin" {
+	if e.goos() != "darwin" {
 		return
 	}
 	stampFile := filepath.Join(e.ConfigDir, "last-notify")

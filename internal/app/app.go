@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -35,6 +36,9 @@ type Env struct {
 	// Exec runs an external command (uv, keyring, docker-credential-cgr...);
 	// nil means run it for real. Tests substitute a fake.
 	Exec func(ctx context.Context, c Cmd) ([]byte, error)
+	// OS is the operating system (runtime.GOOS values); empty means the real
+	// one. Tests pin it so results do not depend on the CI runner.
+	OS string
 	// LookPath finds a binary on PATH; nil means exec.LookPath.
 	LookPath func(name string) (string, error)
 }
@@ -380,4 +384,11 @@ func probe(ctx context.Context, e *Env, name, url, authorization string) Check {
 	default:
 		return Check{Warn, name, fmt.Sprintf("GET %s → %d", url, resp.StatusCode)}
 	}
+}
+
+func (e *Env) goos() string {
+	if e.OS != "" {
+		return e.OS
+	}
+	return runtime.GOOS
 }

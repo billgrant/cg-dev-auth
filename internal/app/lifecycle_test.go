@@ -167,12 +167,9 @@ func TestUserEditsSurviveOff(t *testing.T) {
 }
 
 func TestAgentOnDarwin(t *testing.T) {
-	old := GOOS
-	GOOS = "darwin"
-	defer func() { GOOS = old }()
-
 	e, f, _, cmds := fullEnv(t)
 	e.Config.Ecosystems = []string{"npm"}
+	e.OS = "darwin"
 	ctx := context.Background()
 	if err := Install(ctx, e, InstallOptions{}); err != nil {
 		t.Fatal(err)
