@@ -48,3 +48,5 @@ Status as of 2026-11-24.
   That is why the refresh interval is 5 minutes.
 - Yarn Berry lockfiles show about 0% in `chainctl libraries verify`: Berry
   stores checksums of its own repacked zips. Check the tarball URL instead.
+- need to look at clean uninstall. The config is left behind on uninstall this
+  causes the install to fail until the config is deleted.
