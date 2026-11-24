@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: cg-dev-auth
+    main: ./cmd/cg-dev-auth
+    binary: cg-dev-auth
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux]
+    goarch: [arm64, amd64]
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude: ["^docs:", "^test:", "^chore:"]
+
+homebrew_casks:
+  - name: cg-dev-auth
+    repository:
+      owner: billgrant
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/billgrant/cg-dev-auth
+    description: Point npm, yarn, pip, uv and Docker at Chainguard and keep their credentials fresh
+    binaries: [cg-dev-auth]
+    caveats: |
+      Get started:
+        cg-dev-auth init --org YOUR_ORG
+        cg-dev-auth install
+    hooks:
+      post:
+        # The binary is not notarized; clear the quarantine flag so macOS runs it.
+        install_steps: |
+          on_macos do
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/cg-dev-auth"]
+          end
