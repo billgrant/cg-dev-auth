@@ -68,6 +68,7 @@ project with `packageManager: "yarn@4..."` in `package.json`, or a
 mkdir -p /tmp/cg-yarn1 && cd /tmp/cg-yarn1
 yarn --version                          # should print 1.x
 echo '{"name":"t","version":"1.0.0"}' > package.json
+touch yarn.lock                         # this directory is its own project (see below)
 yarn add express
 grep -m3 resolved yarn.lock              # https://libraries.cgr.dev/javascript/...
 chainctl libraries verify yarn.lock
@@ -85,6 +86,7 @@ this.
 ```sh
 mkdir -p /tmp/cg-yarn4 && cd /tmp/cg-yarn4
 echo '{"name":"t","version":"1.0.0"}' > package.json
+touch yarn.lock                         # this directory is its own project (see below)
 yarn set version stable                 # switches this directory to Berry
 yarn --version                          # should print 4.x
 yarn config get npmRegistryServer       # https://libraries.cgr.dev/javascript
@@ -96,6 +98,13 @@ yarn npm info express --fields dist --json | grep tarball   # https://libraries.
 with "without a usable digest". That's expected: Berry records checksums of
 its own repacked zip files, not of the registry tarballs, so they can't be
 matched to attestations. The tarball URL above is the reliable check.
+
+The empty `yarn.lock` matters. Without it, Yarn walks up the directory tree
+and treats the first `package.json` it finds as the project root. A stray
+`/tmp/package.json` then gives Yarn Berry's `The nearest package directory
+... doesn't seem to be part of the project declared in /private/tmp`, and
+`yarn set version` writes `.yarnrc.yml` and `.yarn/` into the parent
+directory. If that already happened, delete those leftovers from the parent.
 
 ## Docker
 
