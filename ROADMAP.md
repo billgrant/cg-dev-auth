@@ -27,6 +27,23 @@ Status as of 2026-11-24.
    Chainguard checks run alongside GitHub Actions.
 4. **Cleanup.** Bump `actions/checkout` and `actions/setup-go` off the
    deprecated Node 20.
+5. **Tell "offline" apart from "login expired".** Today any failure of
+   `chainctl auth token` counts as an expired session, so being offline
+   also triggers the "run `cg-dev-auth login`" notification. Notify only
+   when the login really needs renewing; log network errors quietly.
+6. **Warn before the chainctl login expires.** chainctl renews the
+   short-lived tokens from its refresh token. When that refresh token
+   expires, everything fails until a browser sign-in. `chainctl auth status`
+   only reports the short-lived token's expiry, so either:
+   - record the time of each `cg-dev-auth login` and warn ahead, once the
+     refresh-token lifetime is known (from the log: first failure minus last
+     login) or configured; or
+   - ask the chainctl team to expose the refresh token's expiry in
+     `chainctl auth status`, and read it from there.
+
+   Not worth doing: `chainctl auth login --headless`. The device flow still
+   needs a person to approve a short-lived code, so it doesn't remove the
+   browser step.
 
 ## Later ideas
 
