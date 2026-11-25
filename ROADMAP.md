@@ -43,6 +43,24 @@ Status as of 2026-11-25.
    needs a person to approve a short-lived code, so it doesn't remove the
    browser step.
 
+5. **More ecosystems: Go, .NET and Java.** Only after 3 and 4 are solved
+   (or there's a better plan for keeping logins alive), because these tools
+   mostly read static config files, like npm. Each would follow the same
+   pattern: a managed config edit, plus the background refresh where a
+   token has to be stored. To research, per ecosystem:
+   - **Go:** `GOPROXY` pointing at Chainguard Libraries, and how the Go
+     toolchain authenticates to it (likely `~/.netrc` or `GOAUTH`).
+   - **.NET:** NuGet sources in the user-level `NuGet.Config`. chainctl
+     already has `chainctl auth configure nuget`, which writes a token that
+     expires within the hour (or a pull token); check whether to reuse it.
+   - **Java:** Maven `~/.m2/settings.xml` (mirror + server credentials) and
+     Gradle (`~/.gradle/gradle.properties` or an init script). Both store the
+     credential in a file, so they'd need the background refresh.
+6. **APK packages.** Support Chainguard OS / Wolfi packages from
+   `apk.cgr.dev`, mainly for building images on the laptop (apko, melange,
+   or Dockerfiles that run `apk add`). To research: how those tools
+   authenticate to `apk.cgr.dev`, and what chainctl already provides.
+
 ## Later ideas
 
 - pnpm and bun (both read `.npmrc`).
