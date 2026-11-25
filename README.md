@@ -3,6 +3,25 @@
 Point your Mac's package tools at Chainguard, and keep their credentials
 fresh, without an artifact manager (Nexus, Artifactory) in between.
 
+## Why this exists
+
+Without an artifact manager, the usual way to use Chainguard from a laptop
+is a pull token pasted into each tool's config. Pull tokens expire, after
+30 days, a week or a year depending on the plan, and nothing warns you. You
+find out when `npm install` or `docker pull` suddenly fails with a 401, and
+then you go hunting for which file holds the stale token. If that happens in
+the middle of a demo it's embarrassing. On a real team it can mean a
+developer is blocked until someone with the right access issues a new token,
+sometimes through a ticket.
+
+cg-dev-auth removes the long-lived token. Each tool gets credentials from
+your `chainctl` login, which renews itself in the background, so pulls keep
+working without anyone tracking expiry dates. It sets everything up with one
+command, and the same command works on any Mac for any organization: only
+`--org` changes.
+
+## What it configures
+
 | Tool | Pulls from | Credentials |
 |---|---|---|
 | npm, Yarn Classic | `libraries.cgr.dev/javascript/` | short-lived token in `~/.npmrc`, refreshed in the background |
