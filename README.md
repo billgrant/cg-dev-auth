@@ -5,20 +5,27 @@ fresh, without an artifact manager (Nexus, Artifactory) in between.
 
 ## Why this exists
 
-Without an artifact manager, the usual way to use Chainguard from a laptop
-is a pull token pasted into each tool's config. Pull tokens expire, after
-30 days, a week or a year depending on the plan, and nothing warns you. You
-find out when `npm install` or `docker pull` suddenly fails with a 401, and
-then you go hunting for which file holds the stale token. If that happens in
-the middle of a demo it's embarrassing. On a real team it can mean a
-developer is blocked until someone with the right access issues a new token,
-sometimes through a ticket.
+Without an artifact manager, using Chainguard from a laptop means setting up
+every package tool by hand, and each one does it differently:
 
-cg-dev-auth removes the long-lived token. Each tool gets credentials from
-your `chainctl` login, which renews itself in the background, so pulls keep
-working without anyone tracking expiry dates. It sets everything up with one
-command, and the same command works on any Mac for any organization: only
-`--org` changes.
+- **Point it at Chainguard.** `registry=` in `~/.npmrc`, `npmRegistryServer`
+  in `~/.yarnrc.yml`, `index-url` in `pip.conf`, an `[[index]]` in `uv.toml`.
+  Each file lives somewhere different, and each has its own format and quirks.
+- **Give it credentials.** Usually a pull token pasted into the same files.
+  Pull tokens expire (after 30 days, a week or a year depending on the plan),
+  and nothing warns you. You find out when `npm install` or `docker pull`
+  suddenly fails with a 401, then you go hunting for which file holds the
+  stale token. In the middle of a demo that's embarrassing. On a real team it
+  can mean a developer is blocked until someone with the right access issues
+  a new token, sometimes through a ticket.
+
+cg-dev-auth does both, for every tool, with one command. It writes each
+tool's registry settings so they point at Chainguard, and it removes the
+long-lived token: each tool gets credentials from your `chainctl` login,
+which renews itself in the background, so pulls keep working without anyone
+tracking expiry dates. The same command works on any Mac for any
+organization (only `--org` changes), and `cg-dev-auth off` switches the
+tools back to their previous registries when you want to compare.
 
 ## What it configures
 
