@@ -258,8 +258,7 @@ go build -o cg-dev-auth ./cmd/cg-dev-auth
 ```
 
 Releases: push a `v*` tag. GoReleaser builds darwin/linux binaries for arm64
-and amd64 and updates the cask in `billgrant/homebrew-tap`. That needs a
-`HOMEBREW_TAP_GITHUB_TOKEN` repository secret with contents:write on the tap.
+and amd64 and updates the cask in `billgrant/homebrew-tap`. 
 
 ## License
 
