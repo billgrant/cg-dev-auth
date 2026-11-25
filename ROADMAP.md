@@ -16,20 +16,21 @@ Status as of 2026-11-25.
   Release: push a `v*` tag (needs the `HOMEBREW_TAP_GITHUB_TOKEN` secret,
   a fine-grained token with contents:write on the tap; it expires, and
   releases fail when it does).
+- Homebrew install confirmed on macOS: `brew install billgrant/tap/cg-dev-auth`
+  runs without a Gatekeeper prompt (the cask clears the quarantine flag),
+  and the LaunchAgent uses the brew binary.
+- README for first-time users (why it exists, prerequisites,
+  troubleshooting), ready to share with the team.
 
 ## Next
 
-1. **Test the Homebrew install on macOS.** `brew install billgrant/tap/cg-dev-auth`;
-   check that the quarantine removal (`postflight_steps` in the cask) lets the
-   binary run, then run `cg-dev-auth install` so the LaunchAgent uses the brew
-   binary.
-2. **Chainguard checks.** Add a `.chainguard/ci` config so `run-ci` and the
+1. **Chainguard checks.** Add a `.chainguard/ci` config so `run-ci` and the
    Chainguard checks run alongside GitHub Actions.
-3. **Tell "offline" apart from "login expired".** Today any failure of
+2. **Tell "offline" apart from "login expired".** Today any failure of
    `chainctl auth token` counts as an expired session, so being offline
    also triggers the "run `cg-dev-auth login`" notification. Notify only
    when the login really needs renewing; log network errors quietly.
-4. **Warn before the chainctl login expires.** chainctl renews the
+3. **Warn before the chainctl login expires.** chainctl renews the
    short-lived tokens from its refresh token. When that refresh token
    expires, everything fails until a browser sign-in. `chainctl auth status`
    only reports the short-lived token's expiry, so either:
@@ -43,7 +44,7 @@ Status as of 2026-11-25.
    needs a person to approve a short-lived code, so it doesn't remove the
    browser step.
 
-5. **More ecosystems: Go, .NET and Java.** Only after 3 and 4 are solved
+4. **More ecosystems: Go, .NET and Java.** Only after 2 and 3 are solved
    (or there's a better plan for keeping logins alive), because these tools
    mostly read static config files, like npm. Each would follow the same
    pattern: a managed config edit, plus the background refresh where a
@@ -56,7 +57,7 @@ Status as of 2026-11-25.
    - **Java:** Maven `~/.m2/settings.xml` (mirror + server credentials) and
      Gradle (`~/.gradle/gradle.properties` or an init script). Both store the
      credential in a file, so they'd need the background refresh.
-6. **APK packages.** Support Chainguard OS / Wolfi packages from
+5. **APK packages.** Support Chainguard OS / Wolfi packages from
    `apk.cgr.dev`, mainly for building images on the laptop (apko, melange,
    or Dockerfiles that run `apk add`). To research: how those tools
    authenticate to `apk.cgr.dev`, and what chainctl already provides.
